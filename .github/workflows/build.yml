@@ -4,5 +4,45 @@ on: [push, pull_request, workflow_dispatch]
 
 jobs:
   build:
-    uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@main
-    
+    runs-on: ubuntu-latest
+    container:
+      image: zmkfirmware/zmk-build-arm:stable
+    name: Build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Cache west modules
+        uses: actions/cache@v4
+        env:
+          cache-name: cache-zephyr-modules
+        with:
+          path: |
+            modules
+            tools
+            zephyr
+            bootloader
+            zmk
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('config/west.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+      - name: West Init
+        run: west init -l config
+      - name: West Update
+        run: west update
+      - name: West Zephyr export
+        run: west zephyr-export
+      - name: West Build (Left)
+        run: west build -s zmk/app -b nice_nano_v2 -- -DZMK_CONFIG="${GITHUB_WORKSPACE}/config" -DSHIELD=roba_left
+      - name: West Build (Right)
+        run: west build -s zmk/app -b nice_nano_v2 -- -DZMK_CONFIG="${GITHUB_WORKSPACE}/config" -DSHIELD=roba_right
+      - name: roBa Left Kconfig file copy
+        run: cp build/zephyr/.config roba_left.conf
+      - name: roBa Right Kconfig file copy
+        run: cp build/zephyr/.config roba_right.conf
+      - name: Artifact upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware
+          path: |
+            build/zephyr/zmk.uf2

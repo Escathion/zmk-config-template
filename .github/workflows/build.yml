@@ -36,10 +36,6 @@ jobs:
         run: west build -s zmk/app -b nice_nano_v2 -- -DZMK_CONFIG="${GITHUB_WORKSPACE}/config" -DSHIELD=roba_left
       - name: West Build (Right)
         run: west build -s zmk/app -b nice_nano_v2 -- -DZMK_CONFIG="${GITHUB_WORKSPACE}/config" -DSHIELD=roba_right
-      - name: roBa Left Kconfig file copy
-        run: cp build/zephyr/.config roba_left.conf
-      - name: roBa Right Kconfig file copy
-        run: cp build/zephyr/.config roba_right.conf
       - name: Artifact upload
         uses: actions/upload-artifact@v4
         with:

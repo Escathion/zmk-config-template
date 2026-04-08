@@ -26,15 +26,8 @@ jobs:
       - name: West Build (Right)
         run: west build -s zmk/app -b nice_nano_v2 -- -DSHIELD=roba_right -DZMK_CONFIG="${GITHUB_WORKSPACE}/config"
 
-      - name: Rename firmware files
-        run: |
-          cp build/zephyr/zmk.uf2 roba_left.uf2
-          # 右側のビルド結果を上書きしないよう、一度別名で保存するか、ビルドディレクトリを分ける必要がありますが、
-          # まずは左側が成功するか確認しましょう。
-          
-      - name: Archive firmware
+      - name: Artifact upload
         uses: actions/upload-artifact@v4
         with:
           name: firmware
-          path: "*.uf2"
-          
+          path: build/zephyr/zmk.uf2
